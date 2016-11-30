@@ -5,8 +5,7 @@ from tkinter import *
 
 
 class Mandelbrot(Frame):
-    def __init__(self, xCenter, yCenter, delta, h, w, bailout, paletteSize,
-                 parent):
+    def __init__(self, xCenter, yCenter, delta, h, w, bailout, parent):
         Frame.__init__(self, parent)
         self.h = h
         self.w = w
@@ -20,8 +19,7 @@ class Mandelbrot(Frame):
         self.bailout = bailout
         self.c, self.z = complex(0, 0), complex(0, 0)
         self.zoomFactor = 0.2
-        self.paletteSize = paletteSize
-        self.palette = self.getPalette()
+        self.setPalette()
         self.totalPixels = self.h * self.w
 
         self.parent = parent
@@ -32,8 +30,8 @@ class Mandelbrot(Frame):
         parent.bind("<Button-1>", self.clickEvent)
 
     def clickEvent(self, event):
-        self.xCenter = self.translate(event.x, 0, self.w, self.xmin, self.xmax)
-        self.yCenter = self.translate(event.y, self.h, 0, self.ymin, self.ymax)
+        self.xCenter = translate(event.x, 0, self.w, self.xmin, self.xmax)
+        self.yCenter = translate(event.y, self.h, 0, self.ymin, self.ymax)
         self.update(self.zoomFactor)
         print("Current canvas center: ", self.xCenter, self.yCenter)
 
@@ -43,6 +41,7 @@ class Mandelbrot(Frame):
         self.ymax = self.yCenter - self.delta
         self.xmin = self.xCenter - self.delta
         self.ymin = self.yCenter + self.delta
+        print('-' * 20)
         self.draw()
 
     def draw(self):
@@ -54,17 +53,18 @@ class Mandelbrot(Frame):
                     oldSeconds = seconds
                     completed = round((x * self.h) / self.totalPixels * 100, 2)
                     print("{}% completed".format(completed))
-                escapeTime = self.getEscapeTime(complex(0, 0), self.setC(x, y))
+                self.setC(x, y)
+                escapeTime = self.getEscapeTime(complex(0, 0), self.c)
                 if escapeTime[0]:
-                    color = self.palette[escapeTime[1] % self.paletteSize]
+                    color = self.palette[escapeTime[1] % 256]
                     self.drawPixel(x, y, color)
                 else:
                     self.drawPixel(x, y, '#000000')
         self.canvas.pack(fill=BOTH, expand=1)
 
     def setC(self, col, row):
-        re = self.translate(col, 0, self.w, self.xmin, self.xmax)
-        im = self.translate(row, 0, self.h, self.ymax, self.ymin)
+        re = translate(col, 0, self.w, self.xmin, self.xmax)
+        im = translate(row, 0, self.h, self.ymax, self.ymin)
         self.c = complex(re, im)
         return self.c
 
@@ -78,7 +78,7 @@ class Mandelbrot(Frame):
                 return True, i
         return False, self.bailout
 
-    def getPalette(self):
+    def setPalette(self):
         palette = []
         redb = 2 * math.pi / (random.randint(0, 128) + 128)
         redc = 256 * random.random()
@@ -86,16 +86,16 @@ class Mandelbrot(Frame):
         greenc = 256 * random.random()
         blueb = 2 * math.pi / (random.randint(0, 128) + 128)
         bluec = 256 * random.random()
-        for i in range(self.paletteSize):
+        for i in range(256):
             red = int(256 * (0.5 * math.sin(redb * i + redc) + 0.5))
             green = int(256 * (0.5 * math.sin(greenb * i + greenc) + 0.5))
             blue = int(256 * (0.5 * math.sin(blueb * i + bluec) + 0.5))
             r, g, b = clamp(red), clamp(green), clamp(blue)
             palette.append("#{0:02x}{1:02x}{2:02x}".format(r, g, b))
-        return palette
+        self.palette = palette
 
 
-def translate(self, value, leftMin, leftMax, rightMin, rightMax):
+def translate(value, leftMin, leftMax, rightMin, rightMax):
     leftSpan = leftMax - leftMin
     rightSpan = rightMax - rightMin
     valueScaled = float(value - leftMin) / float(leftSpan)
@@ -109,7 +109,7 @@ def clamp(x):
 def main():
     master = Tk()
     height = width = round(master.winfo_screenheight()*0.9)
-    ex = Mandelbrot(-0.7, 0, 1.7, height, width, 90, 256, master)
+    ex = Mandelbrot(-0.7, 0, 1.7, height, width, 90, master)
     master.geometry("{}x{}".format(width, height))
     master.mainloop()
 
