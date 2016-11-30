@@ -68,12 +68,6 @@ class Mandelbrot(Frame):
         self.c = complex(re, im)
         return self.c
 
-    def translate(self, value, leftMin, leftMax, rightMin, rightMax):
-        leftSpan = leftMax - leftMin
-        rightSpan = rightMax - rightMin
-        valueScaled = float(value - leftMin) / float(leftSpan)
-        return rightMin + (valueScaled * rightSpan)
-
     def drawPixel(self, x, y, color):
         self.canvas.create_line(x, y, x+1, y, fill=color)
 
@@ -99,6 +93,13 @@ class Mandelbrot(Frame):
             r, g, b = clamp(red), clamp(green), clamp(blue)
             palette.append("#{0:02x}{1:02x}{2:02x}".format(r, g, b))
         return palette
+
+
+def translate(self, value, leftMin, leftMax, rightMin, rightMax):
+    leftSpan = leftMax - leftMin
+    rightSpan = rightMax - rightMin
+    valueScaled = float(value - leftMin) / float(leftSpan)
+    return rightMin + (valueScaled * rightSpan)
 
 
 def clamp(x):
