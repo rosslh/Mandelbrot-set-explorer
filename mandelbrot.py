@@ -1,5 +1,6 @@
 import math
 import random
+from numba import jit
 import time
 from tkinter import *
 
@@ -17,16 +18,16 @@ class Mandelbrot(Frame):
         self.ymin = yCenter + delta
         self.ymax = yCenter - delta
         self.bailout = bailout
-        self.c, self.z = complex(0, 0), complex(0, 0)
+        self.c, self.z = 0, 0
         self.zoomFactor = 0.2
         self.setPalette()
-        self.totalPixels = self.h * self.w
-
         self.parent = parent
         self.parent.title("Mandelbrot")
         self.pack(fill=BOTH, expand=1)
         self.canvas = Canvas(self)
+        start = time.time()
         self.draw()
+        print("{} seconds".format(time.time()-start))
         parent.bind("<Button-1>", self.clickEvent)
 
     def clickEvent(self, event):
@@ -45,38 +46,32 @@ class Mandelbrot(Frame):
         self.draw()
 
     def draw(self):
-        oldSeconds, seconds = 0, 0
         for x in range(self.w):
             for y in range(self.h):
-                seconds = int(time.time())
-                if seconds != oldSeconds:
-                    oldSeconds = seconds
-                    completed = round((x * self.h) / self.totalPixels * 100, 2)
-                    print("{}% completed".format(completed))
                 self.setC(x, y)
-                escapeTime = self.getEscapeTime(complex(0, 0), self.c)
+                escapeTime = self.getEscapeTime(self.c, self.bailout)
                 if escapeTime[0]:
                     color = self.palette[escapeTime[1] % 256]
-                    self.drawPixel(x, y, color)
                 else:
-                    self.drawPixel(x, y, '#000000')
+                    color = '#000000'
+                self.drawPixel(x, y, color)
         self.canvas.pack(fill=BOTH, expand=1)
 
     def setC(self, col, row):
         re = translate(col, 0, self.w, self.xmin, self.xmax)
         im = translate(row, 0, self.h, self.ymax, self.ymin)
         self.c = complex(re, im)
-        return self.c
 
     def drawPixel(self, x, y, color):
         self.canvas.create_line(x, y, x+1, y, fill=color)
 
-    def getEscapeTime(self, z, c):
-        for i in range(self.bailout):
+    def getEscapeTime(self, c, bailout):
+        z = 0
+        for i in range(bailout):
             z = z * z + c
             if abs(z) > 2:
                 return True, i
-        return False, self.bailout
+        return False, bailout
 
     def setPalette(self):
         palette = []
@@ -109,7 +104,7 @@ def clamp(x):
 def main():
     master = Tk()
     height = width = round(master.winfo_screenheight()*0.9)
-    ex = Mandelbrot(-0.7, 0, 1.7, height, width, 90, master)
+    ex = Mandelbrot(-0.7, 0, 1.7, height, width, 85, master)
     master.geometry("{}x{}".format(width, height))
     master.mainloop()
 
