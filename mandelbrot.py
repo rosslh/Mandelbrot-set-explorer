@@ -1,8 +1,10 @@
 import math
 import random
-from numba import jit
 import time
+import os
 from tkinter import *
+import numpy as np
+from PIL import Image, ImageTk
 
 
 class Mandelbrot(Frame):
@@ -25,6 +27,7 @@ class Mandelbrot(Frame):
         self.parent.title("Mandelbrot")
         self.pack(fill=BOTH, expand=1)
         self.canvas = Canvas(self)
+        self.pixels = []
         start = time.time()
         self.draw()
         print("{} seconds".format(time.time()-start))
@@ -46,35 +49,46 @@ class Mandelbrot(Frame):
         self.draw()
 
     def draw(self):
+        start = time.time()
+        self.getOrbits()
+        print("Orbits: {} seconds".format(time.time() - start))
+        start = time.time()
+        self.drawPixels(self.pixels)
+        self.canvas.create_image(10, 10, image=self.background, anchor=NW)
+        print("Pixels: {} seconds".format(time.time() - start))
+        self.canvas.pack(fill=BOTH, expand=1)
+
+    def getOrbits(self):
+        pixels = []
         for x in range(self.w):
             for y in range(self.h):
                 self.setC(x, y)
-                escapeTime = self.getEscapeTime(self.c, self.bailout)
-                if escapeTime[0]:
-                    color = self.palette[escapeTime[1] % 256]
-                else:
-                    color = '#000000'
-                self.drawPixel(x, y, color)
-        self.canvas.pack(fill=BOTH, expand=1)
+                escapeTime = self.getEscapeTime(0, self.c, self.bailout)
+                pixels.append((x, y, self.palette[escapeTime % 256]))
+        self.pixels = pixels
 
     def setC(self, col, row):
         re = translate(col, 0, self.w, self.xmin, self.xmax)
         im = translate(row, 0, self.h, self.ymax, self.ymin)
         self.c = complex(re, im)
 
-    def drawPixel(self, x, y, color):
-        self.canvas.create_line(x, y, x+1, y, fill=color)
+    def drawPixels(self, colorList):
+        img = Image.new('RGB', (self.w, self.h), "black")
+        pixels = img.load()  # create the pixel map
+        for p in colorList:
+            pixels[p[0], p[1]] = p[2]
+        photoimg = ImageTk.PhotoImage(img)
+        self.background = photoimg
 
-    def getEscapeTime(self, c, bailout):
-        z = 0
+    def getEscapeTime(self, z, c, bailout):
         for i in range(bailout):
-            z = z * z + c
             if abs(z) > 2:
-                return True, i
-        return False, bailout
+                return i
+            z = z*z + c
+        return 0
 
     def setPalette(self):
-        palette = []
+        palette = [(0, 0, 0)]
         redb = 2 * math.pi / (random.randint(0, 128) + 128)
         redc = 256 * random.random()
         greenb = 2 * math.pi / (random.randint(0, 128) + 128)
@@ -82,11 +96,11 @@ class Mandelbrot(Frame):
         blueb = 2 * math.pi / (random.randint(0, 128) + 128)
         bluec = 256 * random.random()
         for i in range(256):
-            red = int(256 * (0.5 * math.sin(redb * i + redc) + 0.5))
-            green = int(256 * (0.5 * math.sin(greenb * i + greenc) + 0.5))
-            blue = int(256 * (0.5 * math.sin(blueb * i + bluec) + 0.5))
-            r, g, b = clamp(red), clamp(green), clamp(blue)
-            palette.append("#{0:02x}{1:02x}{2:02x}".format(r, g, b))
+            r = clamp(int(256 * (0.5 * math.sin(redb * i + redc) + 0.5)))
+            g = clamp(int(256 * (0.5 * math.sin(greenb * i + greenc) + 0.5)))
+            b = clamp(int(256 * (0.5 * math.sin(blueb * i + bluec) + 0.5)))
+            palette.append((r, g, b))
+            # palette.append("#{0:02x}{1:02x}{2:02x}".format(r, g, b))
         self.palette = palette
 
 
@@ -104,7 +118,7 @@ def clamp(x):
 def main():
     master = Tk()
     height = width = round(master.winfo_screenheight()*0.9)
-    ex = Mandelbrot(-0.7, 0, 1.7, height, width, 85, master)
+    render = Mandelbrot(-0.7, 0, 1.7, height, width, 85, master)
     master.geometry("{}x{}".format(width, height))
     master.mainloop()
 
