@@ -28,9 +28,7 @@ class Mandelbrot(Frame):
         self.pack(fill=BOTH, expand=1)
         self.canvas = Canvas(self)
         self.pixels = []
-        start = time.time()
         self.draw()
-        print("{} seconds".format(time.time()-start))
         parent.bind("<Button-1>", self.clickEvent)
 
     def clickEvent(self, event):
@@ -118,7 +116,7 @@ def clamp(x):
 def main():
     master = Tk()
     height = width = round(master.winfo_screenheight()*0.9)
-    render = Mandelbrot(-0.7, 0, 1.7, height, width, 85, master)
+    render = Mandelbrot(-0.7, 0, 1.7, height, width, 70, master)
     master.geometry("{}x{}".format(width, height))
     master.mainloop()
 
