@@ -8,6 +8,6 @@ A clickable interactive mandelbrot set, made with Python 3, PIL, and Tkinter. Co
 4. Enjoy!
 
 ## Various Mandelbrot Set features rendered by this program
-<img src="https://raw.githubusercontent.com/Rosshill98/Interactive-Python-Mandelbrot/master/pictures/image.png" width="33%">
-<img src="https://raw.githubusercontent.com/Rosshill98/Interactive-Python-Mandelbrot/master/pictures/image2.png" width="33%">
-<img src="https://raw.githubusercontent.com/Rosshill98/Interactive-Python-Mandelbrot/master/pictures/image3.png" width="33%">
+<img src="https://raw.githubusercontent.com/Rosshill98/Interactive-Python-Mandelbrot/master/pictures/image.png" width="31%">
+<img src="https://raw.githubusercontent.com/Rosshill98/Interactive-Python-Mandelbrot/master/pictures/image2.png" width="31%">
+<img src="https://raw.githubusercontent.com/Rosshill98/Interactive-Python-Mandelbrot/master/pictures/image3.png" width="31%">
