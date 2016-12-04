@@ -1,5 +1,5 @@
 # Interactive-Python-Mandelbrot
-A clickable interactive mandelbrot set, made with Python 3, PIL, and Tkinter. Color palette is randomly generated.
+A clickable interactive mandelbrot set, made with Python 3, PIL, and Tkinter. Colour palette is randomly generated.
 
 ## Usage
 1. Install required modules with `pip install -r requirements.txt`.
