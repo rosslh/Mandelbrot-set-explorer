@@ -3,7 +3,7 @@ A clickable interactive mandelbrot set, made with Python 3, PIL, and Tkinter. Co
 
 ## Usage
 1. Install required modules with `pip install -r requirements.txt`.
-2. Run the program with `python3 mandelbrot.py'
+2. Run the program with `python3 mandelbrot.py`
 3. Click the image where you want to zoom in
 4. Enjoy!
 
