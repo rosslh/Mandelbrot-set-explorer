@@ -78,7 +78,7 @@ class Mandelbrot(Frame):
         self.background = photoimg
 
     def getEscapeTime(self, z, c, bailout):
-        for i in range(bailout):
+        for i in range(1, bailout):
             if abs(z) > 2:
                 return i
             z = z*z + c
