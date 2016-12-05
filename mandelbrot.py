@@ -3,7 +3,6 @@ import random
 import time
 import os
 from tkinter import *
-import numpy as np
 from PIL import Image, ImageTk
 
 
