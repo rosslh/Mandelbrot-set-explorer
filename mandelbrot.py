@@ -3,6 +3,7 @@ import random
 import time
 import os
 import getopt
+import progressbar
 import sys
 from tkinter import *
 from PIL import Image, ImageTk
@@ -59,11 +60,15 @@ class Mandelbrot(Frame):
 
     def getOrbits(self):
         pixels = []
-        for x in range(self.w):
-            for y in range(self.h):
-                self.setC(x, y)
-                escapeTime = self.getEscapeTime(0, self.c, self.bailout)
-                pixels.append((x, y, self.palette[escapeTime % 256]))
+        with progressbar.ProgressBar(max_value=self.w*self.h) as bar:
+            i = 0
+            for x in range(self.w):
+                for y in range(self.h):
+                    self.setC(x, y)
+                    escapeTime = self.getEscapeTime(0, self.c, self.bailout)
+                    pixels.append((x, y, self.palette[escapeTime % 256]))
+                    i += 1
+                    bar.update(i)
         self.pixels = pixels
 
     def setC(self, col, row):
@@ -118,16 +123,16 @@ def main():
     master = Tk()
     height = width = round(master.winfo_screenheight()*0.9)
     try:
-        args = [float(a) for a in getopt.getopt(['--'] + sys.argv[1:], '')[1]]
+        args = [float(a) for a in getopt.getopt(sys.argv[1:], 'i')[1]]
         if len(args) == 3:
-            render = Mandelbrot(args[0], args[1], args[2], height, width, 500, master)
+            render = Mandelbrot(args[0], args[1], args[2], height, width, 200, master)
         elif len(args) == 4:
             render = Mandelbrot(args[0], args[1], args[2], height, width, int(args[3]), master)
         else:
-            render = Mandelbrot(-0.7, 0, 0, height, width, 500, master)
+            render = Mandelbrot(-0.7, 0, 1.5, height, width, 200, master)
     except Exception as E:
         print('Error: {}'.format(str(E)))
-        render = Mandelbrot(-0.7, 0, 0, height, width, 500, master)
+        render = Mandelbrot(-0.7, 0, 1.5, height, width, 200, master)
     master.geometry("{}x{}".format(width, height))
     master.mainloop()
 
