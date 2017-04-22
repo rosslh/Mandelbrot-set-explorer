@@ -2,6 +2,8 @@ import math
 import random
 import time
 import os
+import getopt
+import sys
 from tkinter import *
 from PIL import Image, ImageTk
 
@@ -16,8 +18,8 @@ class Mandelbrot(Frame):
         self.delta = delta
         self.xmin = xCenter - delta  # more of the same...
         self.xmax = xCenter + delta
-        self.ymin = yCenter + delta
-        self.ymax = yCenter - delta
+        self.ymin = yCenter - delta
+        self.ymax = yCenter + delta
         self.bailout = bailout
         self.c, self.z = 0, 0
         self.zoomFactor = 0.2
@@ -39,9 +41,9 @@ class Mandelbrot(Frame):
     def update(self, factor):
         self.delta *= factor
         self.xmax = self.xCenter + self.delta
-        self.ymax = self.yCenter - self.delta
+        self.ymax = self.yCenter + self.delta
         self.xmin = self.xCenter - self.delta
-        self.ymin = self.yCenter + self.delta
+        self.ymin = self.yCenter - self.delta
         print('-' * 20)
         self.draw()
 
@@ -115,7 +117,17 @@ def clamp(x):
 def main():
     master = Tk()
     height = width = round(master.winfo_screenheight()*0.9)
-    render = Mandelbrot(-0.7, 0, 1.7, height, width, 70, master)
+    try:
+        args = [float(a) for a in getopt.getopt(['--'] + sys.argv[1:], '')[1]]
+        if len(args) == 3:
+            render = Mandelbrot(args[0], args[1], args[2], height, width, 500, master)
+        elif len(args) == 4:
+            render = Mandelbrot(args[0], args[1], args[2], height, width, int(args[3]), master)
+        else:
+            render = Mandelbrot(-0.7, 0, 0, height, width, 500, master)
+    except Exception as E:
+        print('Error: {}'.format(str(E)))
+        render = Mandelbrot(-0.7, 0, 0, height, width, 500, master)
     master.geometry("{}x{}".format(width, height))
     master.mainloop()
 
