@@ -10,20 +10,20 @@ from PIL import Image, ImageTk
 
 
 class Mandelbrot(Frame):
-    def __init__(self, parent, h, w, x=-0.7, y=0, z=1.5, bailout=100):
+    def __init__(self, parent, h, w, x=-0.75, y=0, m=1.25, bailout=150):
         Frame.__init__(self, parent)
         self.h = h
         self.w = w
         self.xCenter = x
         self.yCenter = y
-        self.delta = z
-        self.xmin = x - z
-        self.xmax = x + z
-        self.ymin = y - z
-        self.ymax = y + z
+        self.delta = m
+        self.xmin = x - m
+        self.xmax = x + m
+        self.ymin = y - m
+        self.ymax = y + m
         self.bailout = bailout
         self.c, self.z = 0, 0
-        self.zoomFactor = 0.3
+        self.zoomFactor = 0.4  # The amount it zooms in/out on click
         self.setPalette()
         self.parent = parent
         self.parent.title("Mandelbrot")
@@ -32,10 +32,21 @@ class Mandelbrot(Frame):
         self.pixels = []
         self.pixelColors = []
         self.draw()
-        parent.bind("<Button-1>", self.leftClickEvent)
-        parent.bind("<Button-3>", self.rightClickEvent)
+        parent.bind("<Button-1>", self.zoomIn)
+        parent.bind("<Button-2>", self.changePalette)
+        parent.bind("<Button-3>", self.zoomOut)
+        parent.bind("<Control-1>", self.shiftView)
 
-    def rightClickEvent(self, event):
+    def shiftView(self, event):
+        self.xCenter = translate(event.x, 0, self.w, self.xmin, self.xmax)
+        self.yCenter = translate(event.y, self.h, 0, self.ymin, self.ymax)
+        self.xmax = self.xCenter + self.delta
+        self.ymax = self.yCenter + self.delta
+        self.xmin = self.xCenter - self.delta
+        self.ymin = self.yCenter - self.delta
+        self.draw()
+
+    def changePalette(self, event):
         self.setPalette()
         self.pixelColors = []
         self.getColors()
@@ -43,29 +54,34 @@ class Mandelbrot(Frame):
         self.canvas.create_image(10, 10, image=self.background, anchor=NW)
         self.canvas.pack(fill=BOTH, expand=1)
 
-    def leftClickEvent(self, event):
+    def zoomOut(self, event):
         self.xCenter = translate(event.x, 0, self.w, self.xmin, self.xmax)
         self.yCenter = translate(event.y, self.h, 0, self.ymin, self.ymax)
-        self.update(self.zoomFactor)
-
-    def update(self, factor):
-        self.delta *= factor
+        self.delta /= self.zoomFactor
         self.xmax = self.xCenter + self.delta
         self.ymax = self.yCenter + self.delta
         self.xmin = self.xCenter - self.delta
         self.ymin = self.yCenter - self.delta
-        print('-' * 20)
+        self.draw()
+
+    def zoomIn(self, event):
+        self.xCenter = translate(event.x, 0, self.w, self.xmin, self.xmax)
+        self.yCenter = translate(event.y, self.h, 0, self.ymin, self.ymax)
+        self.delta *= self.zoomFactor
+        self.xmax = self.xCenter + self.delta
+        self.ymax = self.yCenter + self.delta
+        self.xmin = self.xCenter - self.delta
+        self.ymin = self.yCenter - self.delta
         self.draw()
 
     def draw(self):
-        start = time.time()
+        print('-' * 20)
         self.getOrbits()
         self.getColors()
-        start = time.time()
         self.drawPixels()
         self.canvas.create_image(10, 10, image=self.background, anchor=NW)
         self.canvas.pack(fill=BOTH, expand=1)
-        print("Current coordinates: ", self.xCenter, self.yCenter, self.delta)
+        print("Current coordinates (x, y, magnification): ", self.xCenter, self.yCenter, self.delta)
 
     def getColors(self):
         pixelColors = []
@@ -138,19 +154,19 @@ def main():
     height = width = round(master.winfo_screenheight()*0.9)
     try:
         parser = argparse.ArgumentParser(description='Generate the Mandelbrot set')
-        parser.add_argument('-i', '--iterations', type=int, help='The number of iterations done for each pixel.')
+        parser.add_argument('-i', '--iterations', type=int, help='The number of iterations done for each pixel. Higher is more accurate but slower.')
         parser.add_argument('-x', type=float, help='The x-center coordinate of the frame.')
         parser.add_argument('-y', type=float, help='The y-center coordinate of the frame.')
-        parser.add_argument('-z', '--zoom', type=float, help='The zoom level of the frame.')
+        parser.add_argument('-m', '--magnification', type=float, help='The magnification level of the frame.')
         args = parser.parse_args()
         if args.iterations is not None:
-            if None not in [args.x, args.y, args.zoom]:
-                render = Mandelbrot(master, height, width, x=args.x, y=args.y, z=args.zoom, bailout=args.iterations)
+            if None not in [args.x, args.y, args.magnification]:
+                render = Mandelbrot(master, height, width, x=args.x, y=args.y, m=args.magnification, bailout=args.iterations)
             else:
                 render = Mandelbrot(master, height, width, bailout=args.iterations)
         else:
-            if None not in [args.x, args.y, args.zoom]:
-                render = Mandelbrot(master, height, width, x=args.x, y=args.y, z=args.zoom)
+            if None not in [args.x, args.y, args.magnification]:
+                render = Mandelbrot(master, height, width, x=args.x, y=args.y, m=args.magnification)
             else:
                 render = Mandelbrot(master, height, width)
     except Exception as E:
