@@ -4,8 +4,9 @@ A clickable interactive mandelbrot set, made with Python 3, PIL, and Tkinter. Co
 ## Usage
 1. Install required modules with `pip install -r requirements.txt`.
 2. Run the program with `python3 mandelbrot.py`
-3. Click the image where you want to zoom in
-4. Enjoy!
+3. Left-click the image where you want to zoom in
+4. Right-click the image to change the colour palette
+5. Enjoy!
 
 ## Various Mandelbrot Set features rendered by this program
 <img src="https://raw.githubusercontent.com/Rosshill98/Interactive-Python-Mandelbrot/master/pictures/image.png" width="45%">
