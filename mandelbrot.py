@@ -2,7 +2,7 @@ import math
 import random
 import time
 import os
-import getopt
+import argparse
 import progressbar
 import sys
 from tkinter import *
@@ -10,34 +10,43 @@ from PIL import Image, ImageTk
 
 
 class Mandelbrot(Frame):
-    def __init__(self, xCenter, yCenter, delta, h, w, bailout, parent):
+    def __init__(self, parent, h, w, x=-0.7, y=0, z=1.5, bailout=100):
         Frame.__init__(self, parent)
         self.h = h
         self.w = w
-        self.xCenter = xCenter
-        self.yCenter = yCenter
-        self.delta = delta
-        self.xmin = xCenter - delta  # more of the same...
-        self.xmax = xCenter + delta
-        self.ymin = yCenter - delta
-        self.ymax = yCenter + delta
+        self.xCenter = x
+        self.yCenter = y
+        self.delta = z
+        self.xmin = x - z
+        self.xmax = x + z
+        self.ymin = y - z
+        self.ymax = y + z
         self.bailout = bailout
         self.c, self.z = 0, 0
-        self.zoomFactor = 0.2
+        self.zoomFactor = 0.3
         self.setPalette()
         self.parent = parent
         self.parent.title("Mandelbrot")
         self.pack(fill=BOTH, expand=1)
         self.canvas = Canvas(self)
         self.pixels = []
+        self.pixelColors = []
         self.draw()
-        parent.bind("<Button-1>", self.clickEvent)
+        parent.bind("<Button-1>", self.leftClickEvent)
+        parent.bind("<Button-3>", self.rightClickEvent)
 
-    def clickEvent(self, event):
+    def rightClickEvent(self, event):
+        self.setPalette()
+        self.pixelColors = []
+        self.getColors()
+        self.drawPixels()
+        self.canvas.create_image(10, 10, image=self.background, anchor=NW)
+        self.canvas.pack(fill=BOTH, expand=1)
+
+    def leftClickEvent(self, event):
         self.xCenter = translate(event.x, 0, self.w, self.xmin, self.xmax)
         self.yCenter = translate(event.y, self.h, 0, self.ymin, self.ymax)
         self.update(self.zoomFactor)
-        print("Current canvas center: ", self.xCenter, self.yCenter)
 
     def update(self, factor):
         self.delta *= factor
@@ -51,12 +60,18 @@ class Mandelbrot(Frame):
     def draw(self):
         start = time.time()
         self.getOrbits()
-        print("Orbits: {} seconds".format(time.time() - start))
+        self.getColors()
         start = time.time()
-        self.drawPixels(self.pixels)
+        self.drawPixels()
         self.canvas.create_image(10, 10, image=self.background, anchor=NW)
-        print("Pixels: {} seconds".format(time.time() - start))
         self.canvas.pack(fill=BOTH, expand=1)
+        print("Current coordinates: ", self.xCenter, self.yCenter, self.delta)
+
+    def getColors(self):
+        pixelColors = []
+        for p in self.pixels:
+            pixelColors.append(self.palette[p[2] % 256])
+        self.pixelColors = pixelColors
 
     def getOrbits(self):
         pixels = []
@@ -66,7 +81,7 @@ class Mandelbrot(Frame):
                 for y in range(self.h):
                     self.setC(x, y)
                     escapeTime = self.getEscapeTime(0, self.c, self.bailout)
-                    pixels.append((x, y, self.palette[escapeTime % 256]))
+                    pixels.append((x, y, escapeTime))
                     i += 1
                     bar.update(i)
         self.pixels = pixels
@@ -76,11 +91,11 @@ class Mandelbrot(Frame):
         im = translate(row, 0, self.h, self.ymax, self.ymin)
         self.c = complex(re, im)
 
-    def drawPixels(self, colorList):
+    def drawPixels(self):
         img = Image.new('RGB', (self.w, self.h), "black")
         pixels = img.load()  # create the pixel map
-        for p in colorList:
-            pixels[p[0], p[1]] = p[2]
+        for index, p in enumerate(self.pixels):
+            pixels[p[0], p[1]] = self.pixelColors[index]
         photoimg = ImageTk.PhotoImage(img)
         self.background = photoimg
 
@@ -104,7 +119,6 @@ class Mandelbrot(Frame):
             g = clamp(int(256 * (0.5 * math.sin(greenb * i + greenc) + 0.5)))
             b = clamp(int(256 * (0.5 * math.sin(blueb * i + bluec) + 0.5)))
             palette.append((r, g, b))
-            # palette.append("#{0:02x}{1:02x}{2:02x}".format(r, g, b))
         self.palette = palette
 
 
@@ -123,16 +137,25 @@ def main():
     master = Tk()
     height = width = round(master.winfo_screenheight()*0.9)
     try:
-        args = [float(a) for a in getopt.getopt(sys.argv[1:], 'i')[1]]
-        if len(args) == 3:
-            render = Mandelbrot(args[0], args[1], args[2], height, width, 200, master)
-        elif len(args) == 4:
-            render = Mandelbrot(args[0], args[1], args[2], height, width, int(args[3]), master)
+        parser = argparse.ArgumentParser(description='Generate the Mandelbrot set')
+        parser.add_argument('-i', '--iterations', type=int, help='The number of iterations done for each pixel.')
+        parser.add_argument('-x', type=float, help='The x-center coordinate of the frame.')
+        parser.add_argument('-y', type=float, help='The y-center coordinate of the frame.')
+        parser.add_argument('-z', '--zoom', type=float, help='The zoom level of the frame.')
+        args = parser.parse_args()
+        if args.iterations is not None:
+            if None not in [args.x, args.y, args.zoom]:
+                render = Mandelbrot(master, height, width, x=args.x, y=args.y, z=args.zoom, bailout=args.iterations)
+            else:
+                render = Mandelbrot(master, height, width, bailout=args.iterations)
         else:
-            render = Mandelbrot(-0.7, 0, 1.5, height, width, 200, master)
+            if None not in [args.x, args.y, args.zoom]:
+                render = Mandelbrot(master, height, width, x=args.x, y=args.y, z=args.zoom)
+            else:
+                render = Mandelbrot(master, height, width)
     except Exception as E:
         print('Error: {}'.format(str(E)))
-        render = Mandelbrot(-0.7, 0, 1.5, height, width, 200, master)
+        render = Mandelbrot(master, height, width)
     master.geometry("{}x{}".format(width, height))
     master.mainloop()
 
