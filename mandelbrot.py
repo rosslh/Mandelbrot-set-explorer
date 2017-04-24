@@ -1,6 +1,5 @@
 import math
 import random
-import time
 import os
 import argparse
 import progressbar
@@ -10,7 +9,7 @@ from PIL import Image, ImageTk
 
 
 class Mandelbrot(Frame):
-    def __init__(self, parent, h, w, x=-0.75, y=0, m=1.25, bailout=150):
+    def __init__(self, parent, h, w, x=-0.75, y=0, m=1.5, iterations=80):
         Frame.__init__(self, parent)
         self.h = h
         self.w = w
@@ -21,7 +20,7 @@ class Mandelbrot(Frame):
         self.xmax = x + m
         self.ymin = y - m
         self.ymax = y + m
-        self.bailout = bailout
+        self.iterations = iterations
         self.c, self.z = 0, 0
         self.zoomFactor = 0.4  # The amount it zooms in/out on click
         self.setPalette()
@@ -33,9 +32,9 @@ class Mandelbrot(Frame):
         self.pixelColors = []
         self.draw()
         parent.bind("<Button-1>", self.zoomIn)
-        parent.bind("<Button-2>", self.changePalette)
         parent.bind("<Button-3>", self.zoomOut)
         parent.bind("<Control-1>", self.shiftView)
+        parent.bind("<Control-3>", self.changePalette)
 
     def shiftView(self, event):
         self.xCenter = translate(event.x, 0, self.w, self.xmin, self.xmax)
@@ -81,7 +80,7 @@ class Mandelbrot(Frame):
         self.drawPixels()
         self.canvas.create_image(10, 10, image=self.background, anchor=NW)
         self.canvas.pack(fill=BOTH, expand=1)
-        print("Current coordinates (x, y, magnification): ", self.xCenter, self.yCenter, self.delta)
+        print("Current coordinates (x, y, magnification): {}, {}, {}".format(self.xCenter, self.yCenter, self.delta))
 
     def getColors(self):
         pixelColors = []
@@ -96,7 +95,7 @@ class Mandelbrot(Frame):
             for x in range(self.w):
                 for y in range(self.h):
                     self.setC(x, y)
-                    escapeTime = self.getEscapeTime(0, self.c, self.bailout)
+                    escapeTime = self.getEscapeTime(self.c, self.c)
                     pixels.append((x, y, escapeTime))
                     i += 1
                     bar.update(i)
@@ -115,8 +114,8 @@ class Mandelbrot(Frame):
         photoimg = ImageTk.PhotoImage(img)
         self.background = photoimg
 
-    def getEscapeTime(self, z, c, bailout):
-        for i in range(1, bailout):
+    def getEscapeTime(self, z, c):
+        for i in range(1, self.iterations):
             if abs(z) > 2:
                 return i
             z = z*z + c
@@ -151,7 +150,7 @@ def clamp(x):
 
 def main():
     master = Tk()
-    height = width = round(master.winfo_screenheight()*0.9)
+    height = width = min(1000, round(master.winfo_screenheight()*0.9))
     try:
         parser = argparse.ArgumentParser(description='Generate the Mandelbrot set')
         parser.add_argument('-i', '--iterations', type=int, help='The number of iterations done for each pixel. Higher is more accurate but slower.')
@@ -161,9 +160,9 @@ def main():
         args = parser.parse_args()
         if args.iterations is not None:
             if None not in [args.x, args.y, args.magnification]:
-                render = Mandelbrot(master, height, width, x=args.x, y=args.y, m=args.magnification, bailout=args.iterations)
+                render = Mandelbrot(master, height, width, x=args.x, y=args.y, m=args.magnification, iterations=args.iterations)
             else:
-                render = Mandelbrot(master, height, width, bailout=args.iterations)
+                render = Mandelbrot(master, height, width, iterations=args.iterations)
         else:
             if None not in [args.x, args.y, args.magnification]:
                 render = Mandelbrot(master, height, width, x=args.x, y=args.y, m=args.magnification)
