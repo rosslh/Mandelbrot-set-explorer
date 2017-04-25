@@ -95,7 +95,7 @@ class Framework(Frame):
         self.background = photoimg
 
     def saveImage(self, event):
-        self.img.save("output/{}.png".format(time.strftime("%Y-%m-%d-%H:%M:%S")), "PNG")
+        self.img.save("output/{}.png".format(time.strftime("%Y-%m-%d-%H:%M:%S")), "PNG", optimize=True)
 
 
 def clamp(x):
