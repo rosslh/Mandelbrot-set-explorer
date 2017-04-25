@@ -10,8 +10,8 @@ A clickable interactive mandelbrot set, made with Python 3, PIL, and Tkinter. Co
 6. Control+right-click to change the image colour-palette
 
 ## Various Mandelbrot Set features rendered by this program
+<img src="https://raw.githubusercontent.com/Rosshill98/Interactive-Python-Mandelbrot/master/pictures/image5.png" width="45%">
 <img src="https://raw.githubusercontent.com/Rosshill98/Interactive-Python-Mandelbrot/master/pictures/image.png" width="45%">
-<img src="https://raw.githubusercontent.com/Rosshill98/Interactive-Python-Mandelbrot/master/pictures/image2.png" width="45%">
 
-<img src="https://raw.githubusercontent.com/Rosshill98/Interactive-Python-Mandelbrot/master/pictures/image3.png" width="45%">
+<img src="https://raw.githubusercontent.com/Rosshill98/Interactive-Python-Mandelbrot/master/pictures/image2.png" width="45%">
 <img src="https://raw.githubusercontent.com/Rosshill98/Interactive-Python-Mandelbrot/master/pictures/image4.png" width="45%">
