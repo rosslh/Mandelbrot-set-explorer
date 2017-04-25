@@ -14,7 +14,7 @@ A clickable interactive mandelbrot set, made with Python 3, PIL, and Tkinter. Us
     -i, --iterations           Number of iterations done for each pixel. Higher is more accurate but slower.
     -x                         The x-center coordinate of the frame.
     -y                         The y-center coordinate of the frame.
-    -m, --magnification        The magnification level of the frame. e.g. 0.5 is twice as magnified.
+    -m, --magnification        The magnification level of the frame. Scientific notation (e.g. 3E-4) is permitted.
     -d, --dimensions           The number of pixels wide/high the image is.
     -s, --save                 Flag to save the generated image.
     -nm, --noMulti             Flag to not use multiprocessing.
