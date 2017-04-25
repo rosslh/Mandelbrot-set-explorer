@@ -90,7 +90,7 @@ class Framework(Frame):
             pixels[p[0], p[1]] = self.pixelColors[index]
         self.img = img
         if self.save:
-            self.save(None)
+            self.saveImage(None)
         photoimg = ImageTk.PhotoImage(img.resize((self.canvasW, self.canvasH)))
         self.background = photoimg
 
