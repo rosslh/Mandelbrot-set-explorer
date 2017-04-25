@@ -20,4 +20,4 @@ A clickable interactive mandelbrot set, made with Python 3, PIL, and Tkinter. Us
     -nm, --noMulti           Flag to not use multiprocessing.
 
 ## Mandelbrot Set feature rendered by this program
-<img src="https://raw.githubusercontent.com/Rosshill98/Interactive-Python-Mandelbrot/master/pictures/image.png" width="50%">
+<img src="https://raw.githubusercontent.com/Rosshill98/Interactive-Python-Mandelbrot/master/pictures/image.png" width="70%">
