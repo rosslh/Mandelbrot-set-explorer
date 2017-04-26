@@ -10,16 +10,24 @@ from mandelbrot import Mandelbrot
 
 
 class Framework(Frame):
-    def __init__(self, parent, h, w, x=-0.75, y=0, m=1.5, iterations=None, dimensions=None, save=False, multi=True):
+    def __init__(self, parent, h, x=-0.75, y=0, m=1.5, iterations=None, imgWidth=None, imgHeight=None, save=False, multi=True):
         Frame.__init__(self, parent)
         self.parent = parent
         self.parent.title("Mandelbrot")
         self.pack(fill=BOTH, expand=1)
         self.canvas = Canvas(self)
 
-        self.fractal = Mandelbrot(w, x=x, y=y, m=m, iterations=iterations, dimensions=dimensions, multi=multi)
+        if None in {imgWidth, imgHeight}:
+            imgWidth, imgHeight = h, h
+        if imgWidth > imgHeight:
+            ratio = imgHeight/imgWidth
+            self.canvasW, self.canvasH = h, round(h*ratio)
+        else:
+            ratio = imgWidth/imgHeight
+            self.canvasW, self.canvasH = round(h*ratio), h
+
+        self.fractal = Mandelbrot(self.canvasW, self.canvasH, x=x, y=y, m=m, iterations=iterations, w=imgWidth, h=imgHeight, multi=multi)
         self.setPalette()
-        self.canvasH, self.canvasW = h, w
         self.pixelColors = []
         self.img = None
         self.save = save
@@ -36,11 +44,11 @@ class Framework(Frame):
         self.draw()
 
     def zoomOut(self, event):
-        self.fractal.zoomIn(event)
+        self.fractal.zoomOut(event)
         self.draw()
 
     def shiftView(self, event):
-        self.fractal.zoomIn(event)
+        self.fractal.shiftView(event)
         self.draw()
 
     def draw(self):
@@ -87,7 +95,7 @@ class Framework(Frame):
         img = Image.new('RGB', (self.fractal.w, self.fractal.h), "black")
         pixels = img.load()  # create the pixel map
         for index, p in enumerate(self.fractal.pixels):
-            pixels[p[0], p[1]] = self.pixelColors[index]
+            pixels[int(p[0]), int(p[1])] = self.pixelColors[index]
         self.img = img
         if self.save:
             self.saveImage(None)
@@ -104,24 +112,26 @@ def clamp(x):
 
 def main():
     master = Tk()
-    height = width = round(master.winfo_screenheight()*0.9)
+    height = round(master.winfo_screenheight()*0.9)
     parser = argparse.ArgumentParser(description='Generate the Mandelbrot set')
     parser.add_argument('-i', '--iterations', type=int, help='The number of iterations done for each pixel. Higher is more accurate but slower.')
     parser.add_argument('-x', type=float, help='The x-center coordinate of the frame.')
     parser.add_argument('-y', type=float, help='The y-center coordinate of the frame.')
     parser.add_argument('-m', '--magnification', type=float, help='The magnification level of the frame.')
-    parser.add_argument('-d', '--dimensions', type=int, help='The (square) dimensions of the frame.')
+    parser.add_argument('-wi', '--width', type=int, help='The width of the image.')
+    parser.add_argument('-he', '--height', type=int, help='The width of the image.')
     parser.add_argument('-s', '--save', action='store_true', help='Save the generated image.')
     parser.add_argument('-nm', '--noMulti', action='store_false', help="Don't use multiprocessing.")
     args = parser.parse_args()
     if None not in [args.x, args.y, args.magnification]:
-        render = Framework(master, height, width, x=args.x, y=args.y, m=args.magnification, multi=args.noMulti,
-                           iterations=args.iterations, dimensions=args.dimensions, save=args.save)
+        render = Framework(master, height, x=args.x, y=args.y, m=args.magnification, multi=args.noMulti,
+                           iterations=args.iterations, imgWidth=args.width, imgHeight=args.height, save=args.save)
     else:
         if not all(arg is None for arg in [args.x, args.y, args.magnification]):
             print("Arguments ignored. Please provide all of x, y, & m.")
-        render = Framework(master, height, width, multi=args.noMulti, iterations=args.iterations, dimensions=args.dimensions, save=args.save)
-    master.geometry("{}x{}".format(width, height))
+        render = Framework(master, height, multi=args.noMulti, iterations=args.iterations,
+                           imgWidth=args.width, imgHeight=args.height, save=args.save)
+    master.geometry("{}x{}".format(render.canvasW, render.canvasH))
     master.mainloop()
 
 main()

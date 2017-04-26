@@ -1,47 +1,59 @@
 from multiprocessing import Pool
+import sys
+import os
 
 
 class Mandelbrot():
-    def __init__(self, canvasW, x=-0.75, y=0, m=1.5, iterations=None, dimensions=None, zoomFactor=0.05, multi=True):
-        self.dimensions = round(canvasW*0.9) if dimensions is None else dimensions
-        self.h = self.w = self.dimensions
+    def __init__(self, canvasW, canvasH, x=-0.75, y=0, m=1.5, iterations=None, w=None, h=None, zoomFactor=0.1, multi=True):
+        self.w, self.h = (round(canvasW*0.9), round(canvasH*0.9)) if None in {w, h} else w, h
         self.iterations = 200 if iterations is None else iterations
         self.xCenter, self.yCenter = x, y
+        if canvasW > canvasH:
+            self.xDelta = m/(canvasH/canvasW)
+            self.yDelta = m
+        else:
+            self.yDelta = m/(canvasW/canvasH)
+            self.xDelta = m
         self.delta = m
         self.multi = multi
-        self.xmin = x - m
-        self.xmax = x + m
-        self.ymin = y - m
-        self.ymax = y + m
+        self.xmin = x - self.xDelta
+        self.xmax = x + self.xDelta
+        self.ymin = y - self.yDelta
+        self.ymax = y + self.yDelta
         self.zoomFactor = zoomFactor
-        self.scaleFactor = self.dimensions/canvasW
+        self.yScaleFactor = self.h/canvasH
+        self.xScaleFactor = self.w/canvasW
         self.c, self.z = 0, 0
 
     def shiftView(self, event):
-        self.xCenter = translate(event.x*self.scaleFactor, 0, self.w, self.xmin, self.xmax)
-        self.yCenter = translate(event.y*self.scaleFactor, self.h, 0, self.ymin, self.ymax)
-        self.xmax = self.xCenter + self.delta
-        self.ymax = self.yCenter + self.delta
-        self.xmin = self.xCenter - self.delta
-        self.ymin = self.yCenter - self.delta
+        self.xCenter = translate(event.x*self.xScaleFactor, 0, self.w, self.xmin, self.xmax)
+        self.yCenter = translate(event.y*self.yScaleFactor, self.h, 0, self.ymin, self.ymax)
+        self.xmax = self.xCenter + self.xDelta
+        self.ymax = self.yCenter + self.yDelta
+        self.xmin = self.xCenter - self.xDelta
+        self.ymin = self.yCenter - self.yDelta
 
     def zoomOut(self, event):
-        self.xCenter = translate(event.x*self.scaleFactor, 0, self.w, self.xmin, self.xmax)
-        self.yCenter = translate(event.y*self.scaleFactor, self.h, 0, self.ymin, self.ymax)
+        self.xCenter = translate(event.x*self.xScaleFactor, 0, self.w, self.xmin, self.xmax)
+        self.yCenter = translate(event.y*self.yScaleFactor, self.h, 0, self.ymin, self.ymax)
+        self.xDelta /= self.zoomFactor
+        self.yDelta /= self.zoomFactor
         self.delta /= self.zoomFactor
-        self.xmax = self.xCenter + self.delta
-        self.ymax = self.yCenter + self.delta
-        self.xmin = self.xCenter - self.delta
-        self.ymin = self.yCenter - self.delta
+        self.xmax = self.xCenter + self.xDelta
+        self.ymax = self.yCenter + self.yDelta
+        self.xmin = self.xCenter - self.xDelta
+        self.ymin = self.yCenter - self.yDelta
 
     def zoomIn(self, event):
-        self.xCenter = translate(event.x*self.scaleFactor, 0, self.w, self.xmin, self.xmax)
-        self.yCenter = translate(event.y*self.scaleFactor, self.h, 0, self.ymin, self.ymax)
+        self.xCenter = translate(event.x*self.xScaleFactor, 0, self.w, self.xmin, self.xmax)
+        self.yCenter = translate(event.y*self.yScaleFactor, self.h, 0, self.ymin, self.ymax)
+        self.xDelta *= self.zoomFactor
+        self.yDelta *= self.zoomFactor
         self.delta *= self.zoomFactor
-        self.xmax = self.xCenter + self.delta
-        self.ymax = self.yCenter + self.delta
-        self.xmin = self.xCenter - self.delta
-        self.ymin = self.yCenter - self.delta
+        self.xmax = self.xCenter + self.xDelta
+        self.ymax = self.yCenter + self.yDelta
+        self.xmin = self.xCenter - self.xDelta
+        self.ymin = self.yCenter - self.yDelta
 
     def getPixels(self):
         coordinates = []
