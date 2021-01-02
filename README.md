@@ -1,6 +1,8 @@
 # Interactive-Python-Mandelbrot
 A clickable interactive mandelbrot set, made with Python 3, PIL, and Tkinter. Uses multiprocessing, colour palette is randomly generated.
 
+**Update**: For a faster, browser-based Mandelbrot set explorer, check out [this more recent project](https://github.com/rosslh/rust-mandelbrot-set).
+
 ## Usage
 1. Install required modules with `pip install -r requirements.txt`.
 2. Run the program with `python3 framework.py`
